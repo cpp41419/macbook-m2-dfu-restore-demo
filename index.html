@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MacBook Pro M2 DFU Restore Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f8f8; margin: 0; }
+    #container { max-width: 700px; margin: 40px auto; background: white; padding: 2em; border-radius: 10px; box-shadow: 0 4px 16px #0001; }
+    .step-title { font-size: 1.3em; margin-bottom: 0.5em; }
+    .step { margin-bottom: 1.2em; }
+    .buttons { display: flex; gap: 1em; }
+    button { padding: 0.7em 1.5em; font-size: 1em; border-radius: 6px; border: none; background: #007aff; color: white; cursor: pointer; }
+    button:disabled { background: #aaa; }
+    .lang-switch { margin-bottom: 1em; }
+    .lang-switch button { background: #eee; color: #333; border: 1px solid #ccc; }
+    .lang-switch button.active { background: #007aff; color: white; }
+    .important { color: #d00; font-weight: bold; }
+    .note { font-size: 0.95em; color: #333; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div class="lang-switch">
+      <button id="enBtn" class="active">English</button>
+      <button id="viBtn">Tiếng Việt</button>
+    </div>
+    <div id="step"></div>
+    <div class="buttons">
+      <button id="prevBtn" disabled>Previous</button>
+      <button id="nextBtn">Next</button>
+    </div>
+  </div>
+<script>
+const stepsEN = [
+  {
+    title: "What You Need",
+    content: `<ul>
+      <li>Host Mac with Apple Configurator 2 installed</li>
+      <li>USB-C to USB-C data cable (not charging-only)</li>
+      <li>Power adapter for the MacBook Pro M2</li>
+    </ul>
+    <div class="note">Gather these items before starting.</div>`
+  },
+  {
+    title: "Set Up the Host Mac",
+    content: `<ul>
+      <li>Open Apple Configurator 2 on the Host Mac.</li>
+      <li>Make sure the Host Mac is connected to power.</li>
+    </ul>`
+  },
+  {
+    title: "Connect the Target Mac",
+    content: `<ul>
+      <li>Connect the MacBook Pro M2 to the Host Mac using the USB-C data cable.</li>
+      <li><span class="important">Do not use hubs or adapters.</span></li>
+    </ul>`
+  },
+  {
+    title: "Enter DFU Mode",
+    content: `<ol>
+      <li>Unplug the power cable from the MacBook Pro M2 for 10 seconds.</li>
+      <li>Plug the power cable back in.</li>
+      <li>Immediately press and hold the power button for 10 seconds (screen stays black).</li>
+      <li>The MacBook Pro M2 should appear as a DFU device in Apple Configurator 2.</li>
+    </ol>`
+  },
+  {
+    title: "Restore or Revive Firmware",
+    content: `<ul>
+      <li>In Apple Configurator 2, locate the MacBook Pro M2 in DFU mode.</li>
+      <li>Choose <strong>Revive</strong> (Actions > Advanced > Revive) to preserve user data.</li>
+      <li>If Revive fails, choose <strong>Restore</strong> (Actions > Restore) to erase all data and reinstall macOS.</li>
+    </ul>`
+  },
+  {
+    title: "Complete the Process",
+    content: `<ul>
+      <li>Once complete, the MacBook Pro M2 restarts and shows the macOS Setup Assistant.</li>
+      <li>If Activation Lock appears, you will need the original Apple ID credentials.</li>
+    </ul>`
+  },
+  {
+    title: "Important Notes",
+    content: `<ul>
+      <li>Use DFU mode only if macOS Recovery tools fail.</li>
+      <li><span class="important">Activation Lock cannot be bypassed.</span> Contact the original owner if needed.</li>
+      <li>Ensure stable USB-C connection and power supply throughout the process.</li>
+    </ul>`
+  },
+  {
+    title: "Finished!",
+    content: `<div class="note">You have completed all steps. Good luck!</div>`
+  }
+];
+
+const stepsVI = [
+  {
+    title: "Bạn cần chuẩn bị",
+    content: `<ul>
+      <li>Máy Mac chủ đã cài đặt Apple Configurator 2</li>
+      <li>Cáp USB-C sang USB-C (loại truyền dữ liệu, không chỉ sạc)</li>
+      <li>Bộ nguồn cho MacBook Pro M2</li>
+    </ul>
+    <div class="note">Hãy chuẩn bị đầy đủ trước khi bắt đầu.</div>`
+  },
+  {
+    title: "Chuẩn bị máy Mac chủ",
+    content: `<ul>
+      <li>Mở Apple Configurator 2 trên máy Mac chủ.</li>
+      <li>Đảm bảo máy Mac chủ được kết nối nguồn điện.</li>
+    </ul>`
+  },
+  {
+    title: "Kết nối MacBook Pro M2",
+    content: `<ul>
+      <li>Kết nối MacBook Pro M2 với máy Mac chủ bằng cáp USB-C.</li>
+      <li><span class="important">Không sử dụng hub hoặc adapter.</span></li>
+    </ul>`
+  },
+  {
+    title: "Đưa MacBook Pro M2 vào chế độ DFU",
+    content: `<ol>
+      <li>Rút dây nguồn khỏi MacBook Pro M2 trong 10 giây.</li>
+      <li>Cắm lại dây nguồn.</li>
+      <li>Ngay lập tức nhấn giữ nút nguồn trong 10 giây (màn hình vẫn đen).</li>
+      <li>MacBook Pro M2 sẽ xuất hiện dưới dạng thiết bị DFU trong Apple Configurator 2.</li>
+    </ol>`
+  },
+  {
+    title: "Khôi phục hoặc hồi phục firmware",
+    content: `<ul>
+      <li>Trong Apple Configurator 2, chọn MacBook Pro M2 ở chế độ DFU.</li>
+      <li>Chọn <strong>Hồi phục</strong> (Hành động > Nâng cao > Hồi phục) để giữ dữ liệu người dùng.</li>
+      <li>Nếu hồi phục thất bại, chọn <strong>Khôi phục</strong> (Hành động > Khôi phục) để xóa sạch dữ liệu và cài lại macOS.</li>
+    </ul>`
+  },
+  {
+    title: "Hoàn tất quá trình",
+    content: `<ul>
+      <li>Sau khi hoàn tất, MacBook Pro M2 sẽ khởi động lại và hiển thị trình trợ lý thiết lập macOS.</li>
+      <li>Nếu xuất hiện Khóa Kích Hoạt, bạn cần thông tin Apple ID gốc.</li>
+    </ul>`
+  },
+  {
+    title: "Lưu ý quan trọng",
+    content: `<ul>
+      <li>Chỉ dùng chế độ DFU khi phục hồi macOS thất bại.</li>
+      <li><span class="important">Không thể vượt qua Khóa Kích Hoạt.</span> Hãy liên hệ chủ sở hữu gốc nếu cần.</li>
+      <li>Đảm bảo kết nối USB-C và nguồn điện ổn định trong suốt quá trình.</li>
+    </ul>`
+  },
+  {
+    title: "Hoàn thành!",
+    content: `<div class="note">Bạn đã hoàn thành tất cả các bước. Chúc thành công!</div>`
+  }
+];
+
+let lang = "en";
+let stepIdx = 0;
+
+function renderStep() {
+  const steps = lang === "en" ? stepsEN : stepsVI;
+  document.getElementById("step").innerHTML = `
+    <div class="step-title">${steps[stepIdx].title}</div>
+    <div class="step">${steps[stepIdx].content}</div>
+  `;
+  document.getElementById("prevBtn").disabled = stepIdx === 0;
+  document.getElementById("nextBtn").disabled = stepIdx === steps.length-1;
+}
+
+document.getElementById("enBtn").onclick = function() {
+  lang = "en"; stepIdx = 0;
+  this.classList.add("active");
+  document.getElementById("viBtn").classList.remove("active");
+  renderStep();
+};
+document.getElementById("viBtn").onclick = function() {
+  lang = "vi"; stepIdx = 0;
+  this.classList.add("active");
+  document.getElementById("enBtn").classList.remove("active");
+  renderStep();
+};
+document.getElementById("nextBtn").onclick = function() {
+  const steps = lang === "en" ? stepsEN : stepsVI;
+  if (stepIdx < steps.length-1) stepIdx++;
+  renderStep();
+};
+document.getElementById("prevBtn").onclick = function() {
+  if (stepIdx > 0) stepIdx--;
+  renderStep();
+};
+
+renderStep();
+</script>
+</body>
+</html>
